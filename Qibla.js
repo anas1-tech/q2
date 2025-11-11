@@ -4,13 +4,13 @@ const kaabaMarker = document.getElementById('kaabaMarker');
 const statusEl = document.getElementById('status');
 let qibla = null;
 
-// زر البدء
+// عند الضغط على زر البدء
 document.getElementById('startBtn').addEventListener('click', startAll);
 
 async function startAll(){
   statusEl.textContent = 'جاري طلب الأذونات...';
 
-  // iOS: إذن البوصلة
+  // iOS: إذن المستشعر
   if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function'){
     try{
       const res = await DeviceOrientationEvent.requestPermission();
@@ -24,7 +24,7 @@ async function startAll(){
   navigator.geolocation.getCurrentPosition(pos=>{
     qibla = computeQibla(pos.coords.latitude, pos.coords.longitude);
     updateKaabaMarker();
-    statusEl.textContent='وجّه الهاتف نحو القبلة.';
+    statusEl.textContent='وجّه الهاتف نحو الكعبة.';
     window.addEventListener('deviceorientation', onOrient, true);
   }, _=>{
     statusEl.textContent='❌ فشل تحديد الموقع.';
@@ -51,10 +51,11 @@ function updateKaabaMarker(){
 
 function onOrient(e){
   if(qibla==null) return;
+
   let heading = (typeof e.webkitCompassHeading==='number') ? e.webkitCompassHeading : (360 - (e.alpha||0));
   if(isNaN(heading)) { statusEl.textContent='⚠️ فعّل مستشعر الحركة.'; return; }
 
-  // البوصلة تدور مع الجوال
+  // تدوير البوصلة حسب اتجاه الجوال
   compass.style.transform = `rotate(${heading}deg)`;
 
   // الفرق بين اتجاه الجوال والقبلة
@@ -66,6 +67,6 @@ function onOrient(e){
     if(navigator.vibrate) navigator.vibrate([0,40,40,40]);
   }else{
     statusEl.classList.remove('success');
-    statusEl.textContent = 'وجّه الهاتف نحو القبلة.';
+    statusEl.textContent = 'وجّه الهاتف نحو الكعبة.';
   }
 }

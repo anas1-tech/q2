@@ -84,13 +84,13 @@ function onOrient(e) {
   }
 
   // الفرق بين اتجاه الجوال والقبلة
-  const targetAngle = qibla - heading;
+  const targetAngle = heading - qibla;
   const delta = norm(targetAngle - currentRotation);
   currentRotation += delta * 0.22; // حركة ناعمة
 
   needle.style.transform = `translateX(-50%) rotate(${currentRotation}deg)`;
 
-  const diff = Math.abs(norm(targetAngle));
+  const diff = Math.abs(norm(heading - qibla));
   if (diff <= 1.5) {
     statusEl.textContent = 'اتجاه القبلة صحيح ✅';
     statusEl.classList.add('success');

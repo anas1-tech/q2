@@ -18,6 +18,7 @@ const locationInfoEl = document.getElementById('locationInfo');
 const needle = document.getElementById('needle');
 const qiblaLabel = document.querySelector('.direction.qibla');
 let qibla = null;
+let kaabaDirectionDeg = null;
 let orientationAttached = false;
 let currentNeedle = 0;
 
@@ -69,6 +70,7 @@ function updateKaabaMarker(){
   kaabaMarker.style.transform =
     `translate(-50%, -50%) rotate(${qibla}deg) translateY(-${MARKER_DISTANCE}px) rotate(${-qibla}deg)`;
   kaabaMarker.style.opacity = '1';
+  kaabaDirectionDeg = qibla;
 
   if(qiblaLabel){
     const labelRadius = MARKER_DISTANCE + 18;
@@ -84,7 +86,7 @@ function attachOrientationListener(){
 }
 
 function onOrient(e){
-  if(qibla==null) return;
+  if(qibla==null || kaabaDirectionDeg==null) return;
   let heading = (typeof e.webkitCompassHeading==='number') ? e.webkitCompassHeading : (360 - (e.alpha||0));
   if(isNaN(heading)) { statusEl.textContent='⚠️ فعّل مستشعر الحركة.'; return; }
 
@@ -97,8 +99,7 @@ function onOrient(e){
   }
 
   const arrowAngle = heading + currentNeedle;
-  const kaabaAngle = qibla;
-  const error = Math.abs(norm(kaabaAngle - arrowAngle));
+  const error = Math.abs(norm(kaabaDirectionDeg - arrowAngle));
   const ok = error <= 6;
   if(ok){
     statusEl.textContent = 'اتجاه القبلة صحيح ✅';

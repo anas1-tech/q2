@@ -48,7 +48,7 @@ h1{margin:22px 0 8px; font-size:28px; font-weight:800}
 /* وجه البوصلة الداخلي */
 .face{
   position:absolute; inset:14px; border-radius:50%;
-  background: radial-gradient(circle at 50% 45%, #ffffff, #ffffff 65%);
+  background: radial-gradient(circle at 50% 45%, #b38e2f, #000000 65%);
 }
 
 /* الاتجاهات الأربع */
@@ -116,10 +116,11 @@ h1{margin:22px 0 8px; font-size:28px; font-weight:800}
     color: #d4af37;
     font-size: 18px;
     font-weight: bold;
+    letter-spacing:1px;
 }
 
 /* ن */
-.north { top: 10%; left: 50%; transform: translateX(-50%); }
+.north { top: 14px; left: 50%; transform: translateX(-50%); }
 
 /* س */
 .south { bottom: 10%; left: 50%; transform: translateX(-50%); }
@@ -129,6 +130,16 @@ h1{margin:22px 0 8px; font-size:28px; font-weight:800}
 
 /* غ */
 .west { left: 10%; top: 50%; transform: translateY(-50%); }
+
+/* قبلة */
+.qibla{
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%) translateY(-140px);
+  transition:transform 0.25s ease-out;
+  color:#fff;
+  font-size:16px;
+}
 
 button{
   background:var(--gold); color:#111; border:0; border-radius:12px;

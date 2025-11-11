@@ -14,14 +14,12 @@ body{
 }
 h1{margin:22px 0 8px; font-size:28px; font-weight:800}
 
-/* البوصلة (تتحرك) */
+/* البوصلة الثابتة */
 .compass{
   position:relative;
   width:320px;
   height:320px;
-  margin:40px auto 10px;
-  transform:rotate(0deg);
-  transition:transform 0.15s linear;
+  margin:20px auto 10px;
 }
 .gold-ring{
   position:absolute; inset:0; border-radius:50%;
@@ -59,20 +57,22 @@ h1{margin:22px 0 8px; font-size:28px; font-weight:800}
   transform:translate(-50%, -50%) translateY(-120px);
   font-size:28px;
   z-index:2;
-  transition:transform 0.3s ease;
+  opacity:1;
 }
 
-/* الإبرة الثابتة */
+/* الإبرة المتحركة */
 .needle {
-  position:fixed;
-  top:50%;
+  position:absolute;
+  bottom:50%;
   left:50%;
-  width:8px;
-  height:100px;
+  width:6px;
+  height:38%;
   background:var(--gold);
-  transform:translate(-50%, -100%);
+  transform-origin:bottom center;
+  transform:translateX(-50%) rotate(0deg);
   border-radius:10px;
-  z-index:10;
+  z-index:5;
+  transition:transform 0.1s ease-out;
 }
 .needle::after {
   content:"";
@@ -85,7 +85,7 @@ h1{margin:22px 0 8px; font-size:28px; font-weight:800}
   border-bottom:16px solid var(--gold);
 }
 
-/* النقطة */
+/* النقطة في المركز */
 .center-dot {
   width: 14px;
   height: 14px;
@@ -95,7 +95,7 @@ h1{margin:22px 0 8px; font-size:28px; font-weight:800}
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 4;
+  z-index: 10;
 }
 
 button{

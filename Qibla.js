@@ -16,6 +16,7 @@ const statusEl = document.getElementById('status');
 const kaabaMarker = document.getElementById('kaabaMarker');
 const locationInfoEl = document.getElementById('locationInfo');
 const needle = document.getElementById('needle');
+const qiblaLabel = document.querySelector('.direction.qibla');
 let qibla = null;
 let orientationAttached = false;
 let currentNeedle = 0;
@@ -69,6 +70,12 @@ function updateKaabaMarker(){
   kaabaMarker.style.transform =
     `translate(-50%, -50%) rotate(${qibla}deg) translateY(-${MARKER_DISTANCE}px) rotate(${-qibla}deg)`;
   kaabaMarker.style.opacity = '1';
+
+  if(qiblaLabel){
+    const labelRadius = MARKER_DISTANCE + 18;
+    qiblaLabel.style.transform =
+      `translate(-50%, -50%) rotate(${qibla}deg) translateY(-${labelRadius}px) rotate(${-qibla}deg)`;
+  }
 }
 
 function attachOrientationListener(){

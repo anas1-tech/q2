@@ -97,7 +97,9 @@ function onOrient(e){
     needle.style.transform = `translateX(-50%) rotate(${currentNeedle}deg)`;
   }
 
-  const error = Math.abs(norm(target));
+  const arrowAngle = heading + currentNeedle;
+  const kaabaAngle = qibla;
+  const error = Math.abs(norm(kaabaAngle - arrowAngle));
   const ok = error <= 6;
   if(ok){
     statusEl.textContent = 'اتجاه القبلة صحيح ✅';

@@ -1,110 +1,95 @@
-const KAABA_COORDS = Object.freeze({ lat: 21.4225, lon: 39.8262 });
-const DEFAULT_LOCATION = Object.freeze({ lat: 21.3891, lon: 39.8579, label: 'مكة المكرمة' });
-const MARKER_DISTANCE = 120; // pixels from center to place the Kaaba emoji
-const KAABA_ALIGNMENT_TOLERANCE = 1.2; // degrees
+// إحداثيات الكعبة المشرفة
+const KAABA_COORDS = { lat: 21.4225, lon: 39.8262 };
 
-// حساب اتجاه القبلة من إحداثيات المستخدم
-function computeQibla(lat, lon){
-  const KaabaLat = KAABA_COORDS.lat * Math.PI/180;
-  const KaabaLon = KAABA_COORDS.lon * Math.PI/180;
-  const φ = lat * Math.PI/180, λ = lon * Math.PI/180;
+// دالة حساب اتجاه القبلة من موقع المستخدم إلى الكعبة
+function computeQibla(lat, lon) {
+  const KaabaLat = KAABA_COORDS.lat * Math.PI / 180;
+  const KaabaLon = KAABA_COORDS.lon * Math.PI / 180;
+  const φ = lat * Math.PI / 180, λ = lon * Math.PI / 180;
   const y = Math.sin(KaabaLon - λ) * Math.cos(KaabaLat);
-  const x = Math.cos(φ)*Math.sin(KaabaLat) - Math.sin(φ)*Math.cos(KaabaLat)*Math.cos(KaabaLon - λ);
-  return (Math.atan2(y, x) * 180/Math.PI + 360) % 360; // 0..360 من الشمال
+  const x = Math.cos(φ) * Math.sin(KaabaLat) - Math.sin(φ) * Math.cos(KaabaLat) * Math.cos(KaabaLon - λ);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360; // درجة من الشمال
 }
 
-const statusEl = document.getElementById('status');
-const kaabaMarker = document.getElementById('kaabaMarker');
-const locationInfoEl = document.getElementById('locationInfo');
 const needle = document.getElementById('needle');
+const statusEl = document.getElementById('status');
 let qibla = null;
-let kaabaDirectionDeg = null;
-let orientationAttached = false;
-let currentNeedle = 0;
 
-// بدء التشغيل بزر واحد
+// زر البدء
 document.getElementById('startBtn').addEventListener('click', startAll);
 
-async function startAll(){
+async function startAll() {
   statusEl.textContent = 'جاري طلب الأذونات...';
 
-  // iOS: إذن مستشعر الاتجاه
-  if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function'){
-    try{
+  // iOS: طلب إذن لاستخدام مستشعر الاتجاه
+  if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    try {
       const res = await DeviceOrientationEvent.requestPermission();
-      if(res !== 'granted'){ statusEl.textContent = '❌ لم يتم منح إذن البوصلة.'; return; }
-    }catch(e){ statusEl.textContent = '❌ تعذّر إذن البوصلة.'; return; }
+      if (res !== 'granted') {
+        statusEl.textContent = '❌ لم يتم منح إذن البوصلة.';
+        return;
+      }
+    } catch (e) {
+      statusEl.textContent = '❌ تعذّر إذن البوصلة.';
+      return;
+    }
   }
 
   // GPS
-  if(!navigator.geolocation){
-    statusEl.textContent='❌ المتصفح لا يدعم GPS. تم استخدام مكة المكرمة.';
-    applyLocation(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lon, `${DEFAULT_LOCATION.label} (افتراضي)`);
+  if (!navigator.geolocation) {
+    statusEl.textContent = '❌ المتصفح لا يدعم GPS.';
     return;
   }
-  statusEl.textContent='جاري تحديد الموقع...';
-  navigator.geolocation.getCurrentPosition(pos=>{
-    applyLocation(pos.coords.latitude, pos.coords.longitude, 'الموقع الحالي');
-  }, _=>{
-    statusEl.textContent='تعذّر تحديد الموقع. تم استخدام مكة المكرمة.';
-    applyLocation(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lon, `${DEFAULT_LOCATION.label} (افتراضي)`);
-  }, {enableHighAccuracy:true, timeout:10000});
+
+  statusEl.textContent = 'جاري تحديد الموقع...';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      qibla = computeQibla(pos.coords.latitude, pos.coords.longitude);
+      statusEl.textContent = 'حرّك الهاتف حتى يثبت السهم على القبلة.';
+      window.addEventListener('deviceorientation', onOrient, true);
+    },
+    _ => {
+      statusEl.textContent = '❌ فشل تحديد الموقع. فعّل GPS ومنح الإذن.';
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
 }
 
-function norm(deg){ let d=(deg%360+360)%360; if(d>180)d-=360; return d; }
-
-function applyLocation(lat, lon, label){
-  qibla = computeQibla(lat, lon);
-  updateKaabaMarker();
-  statusEl.textContent='حرّك الهاتف حتى يثبت السهم على القبلة.';
-  attachOrientationListener();
+let current = 0;
+function norm(deg) {
+  let d = (deg % 360 + 360) % 360;
+  if (d > 180) d -= 360;
+  return d;
+}
+function lerp(a, b, t) {
+  return a + (b - a) * t;
 }
 
-if(locationInfoEl){
-  locationInfoEl.textContent =
-    `الكعبة المشرفة: ${KAABA_COORDS.lat.toFixed(4)}°N، ${KAABA_COORDS.lon.toFixed(4)}°E`;
-}
+function onOrient(e) {
+  if (qibla == null) return;
 
-function updateKaabaMarker(){
-  if(!kaabaMarker || qibla==null) return;
-  kaabaMarker.style.transform =
-    `translate(-50%, -50%) rotate(${qibla}deg) translateY(-${MARKER_DISTANCE}px) rotate(${-qibla}deg)`;
-  kaabaMarker.style.opacity = '1';
-  kaabaDirectionDeg = qibla;
+  let heading = (typeof e.webkitCompassHeading === 'number')
+    ? e.webkitCompassHeading
+    : (360 - (e.alpha || 0));
 
-}
-
-function attachOrientationListener(){
-  if(orientationAttached) return;
-  window.addEventListener('deviceorientation', onOrient, true);
-  orientationAttached = true;
-}
-
-function isAlignedWithKaaba(arrowAngleDeg){
-  if(kaabaDirectionDeg==null) return false;
-  return Math.abs(norm(kaabaDirectionDeg - arrowAngleDeg)) <= KAABA_ALIGNMENT_TOLERANCE;
-}
-
-function onOrient(e){
-  if(qibla==null || kaabaDirectionDeg==null) return;
-  let heading = (typeof e.webkitCompassHeading==='number') ? e.webkitCompassHeading : (360 - (e.alpha||0));
-  if(isNaN(heading)) { statusEl.textContent='⚠️ فعّل مستشعر الحركة.'; return; }
-
-  const target = qibla - heading;
-  const delta  = norm(target - currentNeedle);
-  currentNeedle = currentNeedle + delta * 0.22;
-
-  if(needle){
-    needle.style.transform = `translateX(-50%) rotate(${currentNeedle}deg)`;
+  if (isNaN(heading)) {
+    statusEl.textContent = '⚠️ فعّل مستشعر الحركة.';
+    return;
   }
 
-  const arrowAngle = heading + currentNeedle;
-  const ok = isAlignedWithKaaba(arrowAngle);
-  if(ok){
+  // الفرق بين اتجاه الجهاز واتجاه القبلة الحقيقي
+  let target = qibla - heading;
+  let delta = norm(target - current);
+  current = lerp(current, current + delta, 0.22);
+  needle.style.transform = `translate(-50%, 0) rotate(${current}deg)`;
+
+  // ✅ لا يتم عرض الرسالة إلا إذا الاتجاه مضبوط تمامًا على القبلة
+  const isExactQibla = Math.abs(norm(target)) <= 0.5; // نصف درجة فقط سماحية
+  if (isExactQibla) {
     statusEl.textContent = 'اتجاه القبلة صحيح ✅';
     statusEl.classList.add('success');
-    if(navigator.vibrate) navigator.vibrate([0,40,40,40]);
-  }else{
+    if (navigator.vibrate) navigator.vibrate([0, 40, 40, 40]);
+  } else {
     statusEl.classList.remove('success');
     statusEl.textContent = 'اضغط ابدأ ثم حرّك الهاتف حتى يثبت السهم على القبلة.';
   }

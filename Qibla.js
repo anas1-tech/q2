@@ -1,6 +1,7 @@
 const KAABA_COORDS = Object.freeze({ lat: 21.4225, lon: 39.8262 });
 const DEFAULT_LOCATION = Object.freeze({ lat: 21.3891, lon: 39.8579, label: 'مكة المكرمة' });
 const MARKER_DISTANCE = 120; // pixels from center to place the Kaaba emoji
+const KAABA_ALIGNMENT_TOLERANCE = 1.2; // degrees
 
 // حساب اتجاه القبلة من إحداثيات المستخدم
 function computeQibla(lat, lon){
@@ -85,6 +86,11 @@ function attachOrientationListener(){
   orientationAttached = true;
 }
 
+function isAlignedWithKaaba(arrowAngleDeg){
+  if(kaabaDirectionDeg==null) return false;
+  return Math.abs(norm(kaabaDirectionDeg - arrowAngleDeg)) <= KAABA_ALIGNMENT_TOLERANCE;
+}
+
 function onOrient(e){
   if(qibla==null || kaabaDirectionDeg==null) return;
   let heading = (typeof e.webkitCompassHeading==='number') ? e.webkitCompassHeading : (360 - (e.alpha||0));
@@ -99,8 +105,7 @@ function onOrient(e){
   }
 
   const arrowAngle = heading + currentNeedle;
-  const error = Math.abs(norm(kaabaDirectionDeg - arrowAngle));
-  const ok = error <= 6;
+  const ok = isAlignedWithKaaba(arrowAngle);
   if(ok){
     statusEl.textContent = 'اتجاه القبلة صحيح ✅';
     statusEl.classList.add('success');

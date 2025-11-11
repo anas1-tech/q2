@@ -9,10 +9,6 @@
 </head>
 <body>
   <h1>اتجاه القبلة</h1>
-  <p class="kaaba-info" aria-live="polite">
-    <span class="kaaba-emoji" role="img" aria-label="الكعبة">🕋</span>
-    <span id="locationInfo">الكعبة المشرفة: 21.4225°N، 39.8262°E</span>
-  </p>
 
   <div class="compass" id="compass">
     <div class="gold-ring">
@@ -26,11 +22,12 @@
     <div class="direction east">E</div>
     <div class="direction west">W</div>
 
+    <!-- الإبرة -->
     <div class="needle" id="needle"></div>
 
-    <div class="kaaba-marker" id="kaabaMarker" aria-label="اتجاه الكعبة">
-      <span role="img" aria-hidden="false">🕋</span>
-    </div>
+    <!-- علامة الكعبة -->
+    <div class="kaaba-marker" id="kaabaMarker">🕋</div>
+
     <div class="center-dot"></div>
   </div>
 

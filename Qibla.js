@@ -55,14 +55,13 @@ function norm(deg){ let d=(deg%360+360)%360; if(d>180)d-=360; return d; }
 function applyLocation(lat, lon, label){
   qibla = computeQibla(lat, lon);
   updateKaabaMarker();
-  updateLocationText(label || 'الموقع', lat, lon);
   statusEl.textContent='حرّك الهاتف حتى يثبت السهم على القبلة.';
   attachOrientationListener();
 }
 
-function updateLocationText(label, lat, lon){
-  if(!locationInfoEl) return;
-  locationInfoEl.textContent = `${label}: ${lat.toFixed(4)}°N، ${lon.toFixed(4)}°E`;
+if(locationInfoEl){
+  locationInfoEl.textContent =
+    `الكعبة المشرفة: ${KAABA_COORDS.lat.toFixed(4)}°N، ${KAABA_COORDS.lon.toFixed(4)}°E`;
 }
 
 function updateKaabaMarker(){
